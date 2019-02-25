@@ -185,7 +185,7 @@ if __name__ == '__main__':
                         help='Path to top-level directory which houses GSCs.')
     parser.add_argument('--ssc', '-s', required=True, type=str,
                         help='Path to SSC directory.')
-    parser.add_argument('--entity', '-e', required=True, type=str,
+    parser.add_argument('--entity', '-e', required=False, type=str,
                         help="Entity label to blacklist, e.g. 'PRGE'. Don't include 'B-' or 'I-'.")
     parser.add_argument('--output', '-o', default='.', type=str,
                         help="Path to output directory. Defaults to directory script was called from")
