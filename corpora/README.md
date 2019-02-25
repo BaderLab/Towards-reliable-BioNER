@@ -2,7 +2,28 @@
 
 ## Gold-standard corpora
 
+### S800
+
+To download and convert the S800 corpus to CoNLL format, follow the instructions in the readme of [this](https://github.com/spyysalo/s800) repository.
+
+### Variome
+
+TODO.
+
 ## Silver-standard corpora
+
+### CALBC-III-Small
+
+The processed corpus we used in this study is available at `corpora/CALBC_BIO_100K_blacklisted.tar.bz2`. The pre-processing steps are outlined below
+
+#### Pre-processing
+
+These instructions assume you have git cloned the repository and changed directory to `code`
+
+```
+git clone https://github.com/BaderLab/Towards-reliable-BioNER.git
+cd Towards-reliable-BioNER/code
+```
 
 Download the CALBC-III-Small-allcomer corpus & expand it:
 
@@ -14,29 +35,30 @@ $ gunzip 175k-allcomer-xtype.gz
 Use the conversion script to convert it to Standoff format:
 
 ```
-$ python3 ixeml_to_standoff.py -i 175k-allcomer-xtype -o CALBC_Standoff
+$ python3 iexml_to_standoff.py -i 175k-allcomer-xtype -o CALBC_Standoff
 ```
 
 > This script is lazy, skips converting a document when an error occurs. Therefore the # of output documents is smaller than the number of input documents.
 
-Remove the blacklisted `PMID`s:
+Remove the blacklisted PMIDs and entities
 
 ```
-$ python3 remove_blacklisted.py -i path/to/CALBC_Standoff -b path/to/all_pmids.txt
+$ python3 blacklist_pmids.py -i CALBC_Standoff -b ../supplementary/pmid_blacklists/all_pmids_blacklist.txt
+$ python3 blacklist_entities.py --ssc CALBC_Standoff --blacklist ../supplementary/entity_blacklists/all_entities_blacklist.txt --replace
 ```
 
 Clean the Standoff corpus:
 
 ```
-$ python3 clean_standoff.py -i path/to/CALBC_Standoff
+$ python3 clean_standoff.py -i CALBC_Standoff
 ```
 
-This script removes any files which contain annotations that do not match the corresponding text span, and removes any lone `.ann`/`.txt` pairs. Why these occur is not clear, likely bugs in `ixeml_to_standoff.py`.
+This script removes any files which contain annotations that do not match the corresponding text span, and removes any lone `.ann`/`.txt` pairs. Why these occur is not clear, likely bugs in `iexml_to_standoff.py`.
 
 Split your `CALBC_Standoff` corpus into train/valid/test partitions
 
 ```
-$ python3 split_train_test_valid.py -i path/to/CALBC_Standoff
+$ python3 split_train_test_valid.py -i CALBC_Standoff
 ```
 
 Finally, convert to CoNLL format:
