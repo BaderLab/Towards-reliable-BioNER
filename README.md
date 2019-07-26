@@ -129,7 +129,7 @@ $ source /path/to/new/venv/saber/bin/activate
 Preprocessed datasets are provided under the `datasets` directory for convenience. They just need to be unzipped
 
 ```
-$ (saber) unzip datasets/datasets.zip -d datasets
+$ (saber) tar -xvjf datasets/datasets.tar.bz2 datasets/
 ```
 
 #### Word Emebddings
