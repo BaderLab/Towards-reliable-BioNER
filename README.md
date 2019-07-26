@@ -1,6 +1,20 @@
 # Towards Reliable Named Entity Recognition in the Biomedical Domain
 
-This repository contains supplementary data, and links to the model and corpora used for the paper: "_Towards reliable named entity recognition in the biomedical domain_".
+This repository contains the corpora and supplementary data, along with instructions for recreating the experiments, for our paper: ["Towards reliable named entity recognition in the biomedical domain"](https://academic.oup.com/bioinformatics/advance-article/doi/10.1093/bioinformatics/btz504/5520946).
+
+## Table of Contents
+
+- [Model](#model)
+- [Data](#Data)
+  - [Word Embeddings](#word-embeddings)
+  - [Datasets](#datasets)
+  - [Supplementary Information](#supplementary-information)
+- [Recreating the Experiments](#recreating-the-experiments)
+  - [Installation](#installation)
+  - [Collecting Data](#collecting-data)
+  - [Recreating the Experiments](#recreating-the-experiments)
+- [Issues](#issues)
+- [Citations](#citations)
 
 ## Model
 
@@ -14,9 +28,9 @@ Documentation for the tool can be found [here](https://baderlab.github.io/saber/
 
 The word embeddings used in this study were obtained from [here](http://bio.nlplab.org/#word-vectors) [[2](#citations)].
 
-### Corpora
+### Datasets
 
-Corpora used in this study are listed below, along with links where they can be publicly accessed. With the exceptions of CALBC-III-Small, S800, and Variome (see [corpora](corpora) for pre-processing details), we obtained most corpora in a pre-processed state from [here](https://github.com/cambridgeltl/MTL-Bioinformatics-2016) [[3](#citations)].
+Datasets used in this study are listed below, along with links where they can be publicly accessed. We obtained most datasets in a pre-processed state from [here](https://github.com/cambridgeltl/MTL-Bioinformatics-2016) [[3](#citations)]. The final, preprocessed datasets that we used in this study are available under [`datasets`](https://github.com/BaderLab/Towards-reliable-BioNER/tree/master/datasets).
 
 | Corpora | Text Genre | Standard | Entities | Publication |
 | --- | --- | --- | --- | --- |
@@ -41,112 +55,172 @@ Blacklists used during transfer learning can be found in `supplementary`. There 
 
 ## Recreating the Experiments
 
-First download and install Saber by following the instructions [here](https://baderlab.github.io/saber/).
-
-Then clone and move into this repository
+To recreate the experiments, you must first install our package and collect the relevant data. Start by cloning and moving into this repo
 
 ```
-git clone https://github.com/BaderLab/Towards-reliable-BioNER.git
-cd Towards-reliable-BioNER
+$ git clone https://github.com/BaderLab/Towards-reliable-BioNER.git
+$ cd Towards-reliable-BioNER
 ```
 
-You will then need to collect all corpora. Most GSC are available [here](https://github.com/cambridgeltl/MTL-Bioinformatics-2016/tree/master/data), pre-processed (note we used corpora with tags in the IOB format). See `corpora` for instructions for collecting S800 and Variome. The preprocessed CALBC-III-Small is given in `corpora`.
+### Installation
+
+First, you will need to install `python 3.6`. If not already installed, `python3` can be installed via
+
+- The [official installer](https://www.python.org/downloads/)
+- [Homebrew](https://brew.sh), on MacOS (`brew install python3`)
+- [Miniconda3](https://conda.io/miniconda.html) / [Anaconda3](https://www.anaconda.com/download/)
+
+> Run `python --version` at the command line to make sure installation was successful. You may need to type `python3` (not just `python`) depending on your install method.
+
+It is also highly recommended that you use a virtual environment. See [(Optional) Creating and Activating a Virtual Environment](#optional-creating-and-activating-a-virtual-environment).
+
+Finally, download and install the fork of [Saber](https://baderlab.github.io/saber/) that we used in this paper.
+
+```
+(saber) $ pip install -e git+https://github.com/JohnGiorgi/saber.git@master#egg=saber
+```
+
+#### (Optional) Creating and Activating a Virtual Environment
+
+To create a virtual environment named `saber`
+
+##### Using Conda
+
+Using [Conda](https://conda.io/docs/) / [Miniconda](https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh)
+
+```
+$ conda create -n saber -y python=3.6
+```
+
+To activate the environment
+
+```
+$ conda activate saber
+# Notice your command prompt has changed to indicate that the environment is active
+(saber) $
+```
+
+##### Using virtualenv or venv
+
+Using [virtualenv](https://virtualenv.pypa.io/en/stable/)
+
+```
+$ virtualenv --python=python3 /path/to/new/venv/saber
+```
+
+Using [venv](https://docs.python.org/3/library/venv.html)
+
+```
+$ python3 -m venv /path/to/new/venv/saber
+```
+
+To activate the environment
+
+```
+$ source /path/to/new/venv/saber/bin/activate
+# Notice your command prompt has changed to indicate that the environment is active
+(saber) $
+```
+
+### Collecting Data
+
+#### Datasets
+
+Preprocessed datasets are provided under the `datasets` directory for convenience. They just need to be unzipped
+
+```
+$ (saber) tar -xvjf datasets/datasets.tar.bz2 datasets/
+```
+
+#### Word Emebddings
 
 Finally, you will need to collect the word embeddings
 
 ```
-$ mkdir word_embeddings
-$ wget http://evexdb.org/pmresources/vec-space-models/wikipedia-pubmed-and-PMC-w2v.bin -O word_embeddings
+$ (saber) mkdir word_embeddings
+$ (saber) wget -O word_embeddings/wikipedia-pubmed-and-PMC-w2v.bin http://evexdb.org/pmresources/vec-space-models/wikipedia-pubmed-and-PMC-w2v.bin
 ```
 
-The following instructions assume Saber is installed, that you have git cloned this repository and have changed directory into this repository, that datasets are available under `Towards-reliable-BioNER/datasets` and that word embeddings are available under `Towards-reliable-BioNER/word_embeddings`.
+> Note that this file is 4GB and can take a while to download.
 
-### Baseline Experiments
+### Running the Experiments
 
-To run the baseline experiments (Results section 3.1, Supplementary data Table 3)
+The following instructions assume that you have git cloned and moved into this repository locally, that [Saber](https://baderlab.github.io/saber/) is installed, and that the datasets are available under `Towards-reliable-BioNER/datasets` and that word embeddings are available under `Towards-reliable-BioNER/word_embeddings`.
+
+> The results of the experiments will be saved under `Towards-reliable-BioNER/output` by default. If you would like the results to be saved elsewhere, provide a different path with the `--output_folder` argument or change the `output_folder` argument value in one of the [config files](https://github.com/BaderLab/Towards-reliable-BioNER/tree/master/configs).
+
+
+#### Baseline Experiments
+
+To run the baseline experiments ([Results](https://academic.oup.com/bioinformatics/advance-article/doi/10.1093/bioinformatics/btz504/5520946#137669197) section 3.1, Supplementary data Table 3)
 
 ```
-python -m saber.cli.train --config_filepath configs/baseline.ini
+$ (saber) python -m saber.cli.train --config_filepath configs/baseline.ini
 ```
 
-by default this will train on the `NCBI-Disease` corpus. To train on a different dataset, either provide its path with the `dataset_folder` argument
+#### Generalization Experiments
+
+To run the generalization experiments ([Results](https://academic.oup.com/bioinformatics/advance-article/doi/10.1093/bioinformatics/btz504/5520946#137669197) section 3.2, Supplementary data Table 4)
 
 ```
-$ python -m saber.cli.train --config_filepath configs/baseline.ini --dataset_folder ./datasets/BC2GM_BIO
+$ (saber) python -m saber.cli.train --config_filepath configs/generalization.ini
 ```
+
+#### Variational Dropout Experiments
+
+To run the variational dropout experiments ([Results](https://academic.oup.com/bioinformatics/advance-article/doi/10.1093/bioinformatics/btz504/5520946#137669197) section 3.3, Supplementary data Table 5 and 6)
+
+```
+$ (saber) python -m saber.cli.train --config_filepath configs/variational.ini
+```
+
+#### Transfer Learning Experiments
+
+To run the transfer learning experiments ([Results](https://academic.oup.com/bioinformatics/advance-article/doi/10.1093/bioinformatics/btz504/5520946#137669197) section 3.4, Supplementary data Table 7 and 8)
+
+TODO.
+
+#### Multi-task Learning Experiments
+
+To run the  multi-task learning experiments ([Results](https://academic.oup.com/bioinformatics/advance-article/doi/10.1093/bioinformatics/btz504/5520946#137669197) section 3.5, Supplementary data Table 9 and 10)
+
+```
+$ (saber) python -m saber.cli.train --config_filepath configs/multi_task_learning.ini
+```
+
+#### Choosing the Dataset
+
+For each experiment, we provide configurations files under [`configs`](https://github.com/BaderLab/Towards-reliable-BioNER/tree/master/configs). The only thing you should need to modify is the `dataset_folder` argument. To train on a certain dataset, either provide its path with the `dataset_folder` argument
+
+```
+$ (saber) python -m saber.cli.train --config_filepath configs/baseline.ini --dataset_folder ./datasets/BC2GM_BIO
+```
+
 or change the value for `dataset_folder` in `configs/baseline.ini`.
 
-### Generalization Experiments
+For "in-corpus" experiments (see our [paper](https://academic.oup.com/bioinformatics/advance-article/doi/10.1093/bioinformatics/btz504/5520946)), use the standalone dataset (e.g. `"NCBI_Disease_BIO"`, `"BC5CDR_DISO_BIO"`, etc.). For the "out-of-corpus" experiments, use one of the datasets named `train_on_<x>_test_on_<y>`. In these datasets, the `train.*` and the `test.*` data come from different datasets, allowing you to evaluate how well a model trained on one dataset performs on data from another dataset.
 
-To run the generalization experiments (Results section 3.2, Supplementary data Table 4)
-
-```
-$ python -m saber.cli.train --config_filepath configs/generalization.ini
-```
-
-note that for any out-of-corpus experiments, you will need to modify the data slightly:
-
-- For the corpus we are to train on, combine all examples under a single `train.tsv` file (you can simply copy paste examples from `valid/dev.tsv` and `test.tsv` into `train.tsv` and then discard them).
-- For the corpus we are to test on, combine all examples under a single `test.tsv` file (you can simply copy paste examples from `train.tsv` and `valid/dev.tsv` into `test.tsv` and then discard them).
-
-Place the `train.tsv` and `test.tsv` files under a single directory, and set this as your `dataset_folder`
-
-E.g.
-```
-.
-├── train_on_NCBI_test_on_BC5CDR
-│   ├── train.tsv
-│   └── test.tsv
-```
-
-### Variational Dropout Experiments
-
-To run the variational dropout experiments (Results section 3.3, Supplementary data Table 5 and 6)
-
-__In-corpus__
+For multi-task experiments, simply provide multiple arguments to `dataset_folder`, either at the command line, separated by a space, e.g.
 
 ```
-$ python -m saber.cli.train --config_filepath configs/variational_dropout_in_corpus.ini
+$ (saber) python -m saber.cli.train --config_filepath configs/multi_task_learning.ini --dataset_folder ./datasets/NCBI_Disease_BIO ./datasets/BC5CDR_DISO_BIO
 ```
 
-__Out-of-corpus__
+or in the `config.ini` file, separated by a comma, 
 
 ```
-$ python -m saber.cli.train --config_filepath configs/variational_dropout_out_of_corpus.ini
+dataset_folder = ./datasets/NCBI_Disease_BIO, ./datasets/BC5CDR_DISO_BIO
 ```
 
-See [Generalization Experiments](#generalization-experiments) for how to prepare datasets for out-of-corpus experiments.
+#### Combining Modifications
 
-### Transfer Learning Experiments
+To run the combined modifications experiments ([Results](https://academic.oup.com/bioinformatics/advance-article/doi/10.1093/bioinformatics/btz504/5520946#137669197) section 3.6, Figure 1), just combine the above instructions as appropriate. E.g., to perform variational dropout and multi-task learning, set `dropout_rate` to `0.3, 0.3, 0.1`, `variational_dropout` to `True` and provide two datasets to `dataset_folder`.
 
-To run the variational dropout experiments (Results section 3.4, Supplementary data Table 7 and 8)
+## Issues
 
-TODO
+Please open an issue if you have any questions.
 
-
-### Multi-task Learning Experiments
-
-To run the  multi-task learning experiments (Results section 3.5, Supplementary data Table 9 and 10)
-
-__In-corpus__
-
-```
-$ python -m saber.cli.train --config_filepath configs/multi_task_learning_in_corpus.ini
-```
-
-__Out-of-corpus__
-
-```
-$ python -m saber.cli.train --config_filepath configs/multi_task_learning_out_of_corpus.ini
-```
-
-See [Generalization Experiments](#generalization-experiments) for how to prepare datasets for out-of-corpus experiments.
-
-### Combining Modifications
-
-To run the combined modifications experiments (Results section 3.6, Figure 1), just combine the above instructions as appropriate. E.g., to perform variational dropout and multi-task learning, set `dropout_rate` to `0.3, 0.3, 0.1`, `variational_dropout` to `True` and provide two datasets to `dataset_folder`.
-
-### Citations
+## Citations
 
 1. Lample, G., Ballesteros, M., Subramanian, S., Kawakami, K., & Dyer, C. (2016). Neural architectures for named entity recognition. arXiv preprint arXiv:1603.01360.
 2. Moen, S. P. F. G. H., & Ananiadou, T. S. S. (2013). Distributional semantics resources for biomedical text processing. In Proceedings of the 5th International Symposium on Languages in Biology and Medicine, Tokyo, Japan (pp. 39-43).
